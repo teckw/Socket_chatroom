@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+	<title>Chatroom</title>
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			var socket = io.connect();
+
+			var name = prompt("Your name:");
+			
+			socket.emit("got_new_user", {name: name});
+			console.log(name);
+
+			socket.on("new_user", function(data){
+				for (i in data.history){
+					$("#user_chat").append("<p>" + data.history[i].message + "</p>")
+				};
+				$("#user_chat").append(JSON.stringify(data.response.name) + " has joined the chatroom");
+			});
+
+			$("#message").click(function(){
+				socket.emit("message", {name: name, message: $("#message_content").val()});
+			});
+
+			socket.on("all_messages", function(data){
+				console.log(data);
+				$("#user_chat").append("<p>" + data.response.name + ": " + data.response.message + "</p>");
+			});
+
+			socket.on("user_left", function(data){
+				$("#user_chat").append("<p>" + data.response + " has left the chatroom</p>");
+			})
+
+		})
+
+	</script>
+
+<style type="text/css">
+	#chatbox{
+		margin: 20px;
+		border-radius: 10px solid black;
+		background-color: LightGray;
+		height: 500px;
+		width: 500px;
+	}
+
+</style>
+
+</head>
+<body>
+	<div id="container">
+		<h3>Conversation Board</h3>
+		<div id="chatbox">
+			<p id="user_chat"></p>
+		</div>
+	</div>
+	<div id="messaging">
+		<input id="message_content" type="text" cols="10" rows="1">
+		<button id="message" value="Submit">Submit</button>
+	</div>
+
+</body>
+</html>
